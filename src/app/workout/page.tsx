@@ -24,39 +24,6 @@ import {
   AccordionTrigger,
 } from '../components/ui/accordion';
 
-const containerVariants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { delay: 0.5, duration: 0.5 },
-  },
-};
-
-const H1 = ({ children, delay }: any) => {
-  const controls = useAnimation();
-  React.useEffect(() => {
-    controls.start('visible');
-  });
-
-  return (
-    <motion.h1
-      className="text-xs px-2 py-1 font-bold bg-gray-100 text-gray-600 rounded"
-      initial="hidden"
-      animate={controls}
-      variants={containerVariants}
-      transition={{ delay: delay }}
-    >
-      {children}
-    </motion.h1>
-  );
-};
-
-const numbers = ['1.', '2.', '3.', '4.', '5.', '6.', '7.'];
-
 const Home = () => {
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState(false);
@@ -317,6 +284,7 @@ const Home = () => {
                       nextNum === -1 ? generatedWorkouts.length : nextNum;
                     const workout = generatedWorkouts.substring(
                       startIndex,
+                      // @ts-ignore
                       endIndex
                     );
                     return (
@@ -392,6 +360,7 @@ const Home = () => {
                 <Button
                   className="w-full mt-12"
                   onClick={(e) => generateBio(e)}
+                  disabled={currentInputIndex !== inputs.length - 1}
                 >
                   <Dumbbell className="mr-2 h-4 w-4" />
                   Generate your workout&nbsp;&nbsp;
