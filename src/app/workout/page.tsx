@@ -1,13 +1,12 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 
-const Home: NextPage = () => {
+const Home = () => {
   const [loading, setLoading] = useState(false);
   const [bio, setBio] = useState('');
   const [generatedBios, setGeneratedBios] = useState<String>('');
