@@ -16,8 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head />
+    <html>
+      <head>
+        <title>IntelliFit</title>
+      </head>
       <body className={poppins.className}>
         <ThemeProvider>
           <Navbar />

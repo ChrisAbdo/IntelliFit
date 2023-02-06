@@ -3,8 +3,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Head from 'next/head';
 import Image from 'next/image';
+
 import { useState } from 'react';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, Loader2 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -16,14 +17,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../components/ui/accordion';
 
 const Home = () => {
   const [loading, setLoading] = useState(false);
   //   const [bio, setBio] = useState('');
   //   const [generatedBios, setGeneratedBios] = useState<String>('');
   const [generatedWorkouts, setGeneratedWorkouts] = useState<String>('');
-  const [currentWeight, setCurrentWeight] = useState<number>(0);
-  const [desiredWeight, setDesiredWeight] = useState<number>(0);
+  const [currentWeight, setCurrentWeight] = useState<number>();
+  const [desiredWeight, setDesiredWeight] = useState<number>();
   const [intensity, setIntensity] = useState<string>('');
   const [daysAWeek, setDaysAWeek] = useState<number>(0);
   const [currentInputIndex, setCurrentInputIndex] = useState(0);
@@ -38,6 +45,7 @@ const Home = () => {
           type="number"
           id="currentweight"
           placeholder="Current Weight"
+          value={currentWeight}
           onChange={(e) => {
             setCurrentWeight(parseInt(e.target.value));
           }}
@@ -51,6 +59,7 @@ const Home = () => {
           type="number"
           id="desiredweight"
           placeholder="Desired Weight"
+          value={desiredWeight}
           onChange={(e) => {
             setDesiredWeight(parseInt(e.target.value));
           }}
@@ -61,9 +70,12 @@ const Home = () => {
     <div key={3} className="w-full ml-6">
       <div className="grid w-full  items-center gap-1.5">
         <Label htmlFor="currentweight">How Hard Are You Willing to Go?</Label>
-        <Select>
+        <Select
+          onValueChange={(value) => setIntensity(value)}
+          value={intensity}
+        >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Intensity Level" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="casual">Casual</SelectItem>
@@ -77,12 +89,11 @@ const Home = () => {
 
     <div key={4} className="w-full ml-6">
       <div className="grid w-full  items-center gap-1.5">
-        <Label htmlFor="currentweight">
-          How many days do you workout a week?
-        </Label>
+        <Label htmlFor="currentweight">Days a week you workout?</Label>
         <Input
           className="w-full"
-          type="text"
+          type="number"
+          max={7}
           id="daysaweek"
           placeholder="Days a week worked out"
           onChange={(e) => setDaysAWeek(parseInt(e.target.value))}
@@ -100,7 +111,7 @@ const Home = () => {
     intensity +
     'and i work out' +
     daysAWeek +
-    'days a week. make me a workout plan.';
+    'days a week. make me a workout plan. Clearly label the days.';
 
   const generateBio = async (e: any) => {
     e.preventDefault();
@@ -150,6 +161,7 @@ const Home = () => {
       setDirection('right');
     }
   };
+
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
       <Head>
@@ -165,7 +177,34 @@ const Home = () => {
           Just fill out some questions and we&apos;ll generate a workout plan
           for you.
         </p>
-        <div className="max-w-xl w-full">
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="item-1">
+            <AccordionTrigger>Before You Start</AccordionTrigger>
+            <AccordionContent>
+              Make sure that this workout plan works with you. It may be too
+              intense or not intense enough. Doing a workout plan that&apos;s
+              too intense is dangerous and can lead to injury. If you&apos;re
+              not sure, ask a doctor or a trainer.
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="item-3">
+            <AccordionTrigger>Future Plans for IntelliFit</AccordionTrigger>
+            <AccordionContent>
+              Some features: <br />
+              - AI Generated Workout Names <br />
+              - More accurate workout plans <br />
+              - More questions <br />
+              - More customization <br />
+              - More features TBA <br />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <div className="max-w-xl w-full bg-[#DADDE2] dark:bg-[#1f1f1f] rounded-md p-6 mt-6">
+          <h1 className="float-left">
+            {currentInputIndex + 1} of {inputs.length}
+          </h1>
           <AnimatePresence>
             <div
               className="input-container"
@@ -182,6 +221,7 @@ const Home = () => {
                   animate={{ x: 0 }}
                   exit={{ x: direction === 'right' ? '-100%' : '100%' }}
                   transition={{ type: 'tween', duration: 0.5 }}
+                  className="w-[91%]"
                 >
                   {inputs[currentInputIndex]}
                 </motion.div>
@@ -201,9 +241,6 @@ const Home = () => {
               Previous
             </Button>
 
-            <h1 className="">
-              {currentInputIndex + 1} of {inputs.length}
-            </h1>
             <Button
               variant="default"
               onClick={() => {
@@ -215,28 +252,19 @@ const Home = () => {
               Next
             </Button>
           </div>
-          {/* <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            rows={4}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black my-5"
-            placeholder={
-              'e.g. Senior Developer Advocate @vercel. Tweeting about web development, AI, and React / Next.js. Writing nutlope.substack.com.'
-            }
-          /> */}
 
           {!loading && (
             <Button className="w-full mt-12" onClick={(e) => generateBio(e)}>
               <Dumbbell className="mr-2 h-4 w-4" />
-              Generate your bio&nbsp;&nbsp;
+              Generate your workout&nbsp;&nbsp;
               <Dumbbell className="mr-2 h-4 w-4" />
             </Button>
           )}
           {loading && (
-            <button
-              className="bg-black rounded-xl text-white font-medium px-4 py-2 sm:mt-10 mt-8 hover:bg-black/80 w-full"
-              disabled
-            ></button>
+            <Button className="w-full mt-12" disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating...
+            </Button>
           )}
         </div>
         <Toaster
