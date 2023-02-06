@@ -55,6 +55,8 @@ const H1 = ({ children, delay }: any) => {
   );
 };
 
+const numbers = ['1.', '2.', '3.', '4.', '5.', '6.', '7.'];
+
 const Home = () => {
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState(false);
@@ -144,7 +146,7 @@ const Home = () => {
     intensity +
     'and i work out' +
     daysAWeek +
-    'days a week. make me a workout plan that consists of different workouts.';
+    'days a week. make me a workout plan. clearly labeled "1.", "2.", "3.", etc, respective to the days';
 
   const generateBio = async (e: any) => {
     e.preventDefault();
@@ -304,36 +306,32 @@ const Home = () => {
           ) : completed ? (
             <AnimatePresence mode="wait">
               <motion.div className="space-y-10 my-10">
-                {generatedWorkouts && (
-                  <>
-                    <div>
-                      <h2 className="sm:text-4xl text-3xl font-bold mx-auto mb-4">
-                        Your Workout Plan
-                      </h2>
-                      <div className="flex justify-between gap-2">
-                        <H1>Current: {currentWeight} lbs</H1>
-                        <H1>Desired: {desiredWeight} lbs</H1>
-                        <H1>Intensity: {intensity}</H1>
-                        <H1>Days: {daysAWeek}</H1>
+                {Array.from({ length: daysAWeek }, (_, i) => i + 1).map(
+                  (num) => {
+                    const startIndex = generatedWorkouts.indexOf(num + '.');
+                    const nextNum =
+                      num === 7
+                        ? null
+                        : generatedWorkouts.indexOf(num + 1 + '.');
+                    const endIndex =
+                      nextNum === -1 ? generatedWorkouts.length : nextNum;
+                    const workout = generatedWorkouts.substring(
+                      startIndex,
+                      endIndex
+                    );
+                    return (
+                      <div
+                        className="bg-white dark:bg-[#303030] text-black dark:text-white rounded-xl shadow-md p-4 hover:bg-gray-100 dark:hover:bg-[#303030]/80 transition cursor-copy border"
+                        onClick={() => {
+                          navigator.clipboard.writeText(workout);
+                          toast.success('Bio copied to clipboard');
+                        }}
+                        key={workout}
+                      >
+                        <p>{workout}</p>
                       </div>
-                    </div>
-                    <div className="space-y-8 flex flex-col items-center justify-center max-w-xl mx-auto">
-                      {generatedWorkouts.split('2.').map((generatedWorkout) => {
-                        return (
-                          <div
-                            className="bg-white dark:bg-[#303030] text-black dark:text-white rounded-xl shadow-md p-4 hover:bg-gray-100 dark:hover:bg-[#303030]/80 transition cursor-copy border"
-                            onClick={() => {
-                              navigator.clipboard.writeText(generatedWorkout);
-                              toast.success('Bio copied to clipboard');
-                            }}
-                            key={generatedWorkout}
-                          >
-                            <p>{generatedWorkout}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
+                    );
+                  }
                 )}
               </motion.div>
             </AnimatePresence>
