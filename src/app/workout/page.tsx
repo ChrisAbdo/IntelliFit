@@ -5,15 +5,76 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
 const Home = () => {
+  const prompt = 'tell me a joke';
+
   const [loading, setLoading] = useState(false);
   const [bio, setBio] = useState('');
   const [generatedBios, setGeneratedBios] = useState<String>('');
+  const [currentInputIndex, setCurrentInputIndex] = useState(0);
+  const [direction, setDirection] = useState('right');
 
-  console.log('Streamed response: ', generatedBios);
+  const inputs = [
+    <div key={1} className="w-full ml-6">
+      <div className="grid w-full  items-center gap-1.5">
+        <Label htmlFor="currentweight">Your Current Weight (pounds)</Label>
+        <Input
+          className="w-full"
+          type="number"
+          id="currentweight"
+          placeholder="Current Weight"
+        />
+      </div>
+    </div>,
+    <div key={2} className="w-full ml-6">
+      <div className="grid w-full  items-center gap-1.5">
+        <Label htmlFor="currentweight">Your Desired Weight (pounds)</Label>
+        <Input type="number" id="desiredweight" placeholder="Desired Weight" />
+      </div>
+    </div>,
 
-  const prompt = 'tell me a joke';
+    <div key={3} className="w-full ml-6">
+      <div className="grid w-full  items-center gap-1.5">
+        <Label htmlFor="currentweight">How Hard Are You Willing to Go?</Label>
+        <Select>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Intensity Level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="casual">Casual</SelectItem>
+            <SelectItem value="feel">Feel It In The Morning</SelectItem>
+            <SelectItem value="why">Why Did I Do This</SelectItem>
+            <SelectItem value="military">Military Intensity</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>,
+
+    <div key={4} className="w-full ml-6">
+      <div className="grid w-full  items-center gap-1.5">
+        <Label htmlFor="currentweight">
+          How many days do you workout a week?
+        </Label>
+        <Input
+          className="w-full"
+          type="number"
+          id="daysaweek"
+          placeholder="Days a week worked out"
+        />
+      </div>
+    </div>,
+  ];
 
   const generateBio = async (e: any) => {
     e.preventDefault();
@@ -54,6 +115,13 @@ const Home = () => {
     setLoading(false);
   };
 
+  const handleClick = (next: any) => {
+    if (next) {
+      setDirection('left');
+    } else {
+      setDirection('right');
+    }
+  };
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
       <Head>
@@ -61,37 +129,65 @@ const Home = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-12 sm:mt-20">
-        <a
-          className="flex max-w-fit items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-600 shadow-md transition-colors hover:bg-gray-100 mb-5"
-          href="https://github.com/Nutlope/twitterbio"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <p>Star on GitHub</p>
-        </a>
-        <h1 className="sm:text-6xl text-4xl max-w-2xl font-bold text-slate-900">
-          Generate your next Twitter bio in seconds
+      <main className="flex flex-1 w-full flex-col items-center text-center px-4">
+        <h1 className="sm:text-6xl text-4xl max-w-2xl font-bold overflow-hidden">
+          Welcome to IntelliFit, the AI powered workout planner.
         </h1>
-        <p className="text-slate-500 mt-5">18,167 bios generated so far.</p>
+        <p className="text-xl max-w-2xl overflow-hidden mt-4 mb-4">
+          Just fill out some questions and we&apos;ll generate a workout plan
+          for you.
+        </p>
         <div className="max-w-xl w-full">
-          <div className="flex mt-10 items-center space-x-3">
-            <Image
-              src="/1-black.png"
-              width={30}
-              height={30}
-              alt="1 icon"
-              className="mb-5 sm:mb-0"
-            />
-            <p className="text-left font-medium">
-              Copy your current bio{' '}
-              <span className="text-slate-500">
-                (or write a few sentences about yourself)
-              </span>
-              .
-            </p>
+          <AnimatePresence>
+            <div
+              className="input-container"
+              style={{
+                display: 'inline-flex',
+                width: '100%',
+                overflowX: 'hidden',
+              }}
+            >
+              {inputs[currentInputIndex] && (
+                <motion.div
+                  key={currentInputIndex}
+                  initial={{ x: direction === 'right' ? '-100%' : '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: direction === 'right' ? '-100%' : '100%' }}
+                  transition={{ type: 'tween', duration: 0.5 }}
+                >
+                  {inputs[currentInputIndex]}
+                </motion.div>
+              )}
+            </div>
+          </AnimatePresence>
+
+          <div className="flex justify-between mt-4 px-6">
+            <Button
+              variant="default"
+              onClick={() => {
+                setCurrentInputIndex(currentInputIndex - 1);
+                handleClick(false);
+              }}
+              disabled={currentInputIndex === 0}
+            >
+              Previous
+            </Button>
+
+            <h1 className="">
+              {currentInputIndex + 1} of {inputs.length}
+            </h1>
+            <Button
+              variant="default"
+              onClick={() => {
+                setCurrentInputIndex(currentInputIndex + 1);
+                handleClick(true);
+              }}
+              disabled={loading || currentInputIndex === inputs.length - 1}
+            >
+              Next
+            </Button>
           </div>
-          <textarea
+          {/* <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={4}
@@ -100,10 +196,6 @@ const Home = () => {
               'e.g. Senior Developer Advocate @vercel. Tweeting about web development, AI, and React / Next.js. Writing nutlope.substack.com.'
             }
           />
-          <div className="flex mb-5 items-center space-x-3">
-            <Image src="/2-black.png" width={30} height={30} alt="1 icon" />
-            <p className="text-left font-medium">Select your vibe.</p>
-          </div>
 
           {!loading && (
             <button
@@ -118,7 +210,7 @@ const Home = () => {
               className="bg-black rounded-xl text-white font-medium px-4 py-2 sm:mt-10 mt-8 hover:bg-black/80 w-full"
               disabled
             ></button>
-          )}
+          )} */}
         </div>
         <Toaster
           position="top-center"
