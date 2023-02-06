@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useAnimation } from 'framer-motion';
 import Head from 'next/head';
 import Image from 'next/image';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dumbbell, Loader2 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { Button } from '../components/ui/button';
@@ -24,8 +24,41 @@ import {
   AccordionTrigger,
 } from '../components/ui/accordion';
 
+const containerVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { delay: 0.5, duration: 0.5 },
+  },
+};
+
+const H1 = ({ children, delay }: any) => {
+  const controls = useAnimation();
+  React.useEffect(() => {
+    controls.start('visible');
+  });
+
+  return (
+    <motion.h1
+      className="text-xs px-2 py-1 font-bold bg-gray-100 text-gray-600 rounded"
+      initial="hidden"
+      animate={controls}
+      variants={containerVariants}
+      transition={{ delay: delay }}
+    >
+      {children}
+    </motion.h1>
+  );
+};
+
 const Home = () => {
   const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState(false);
+  const [completed, setCompleted] = useState(false);
   //   const [bio, setBio] = useState('');
   //   const [generatedBios, setGeneratedBios] = useState<String>('');
   const [generatedWorkouts, setGeneratedWorkouts] = useState<String>('');
@@ -111,13 +144,15 @@ const Home = () => {
     intensity +
     'and i work out' +
     daysAWeek +
-    'days a week. make me a workout plan. Clearly label the days.';
+    'days a week. make me a workout plan that consists of different workouts.';
 
   const generateBio = async (e: any) => {
     e.preventDefault();
     // setGeneratedBios('');
     setGeneratedWorkouts('');
     setLoading(true);
+    setLoadingState(true);
+    setCompleted(false);
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
@@ -152,6 +187,8 @@ const Home = () => {
     }
 
     setLoading(false);
+    setLoadingState(false);
+    setCompleted(true);
   };
 
   const handleClick = (next: any) => {
@@ -201,109 +238,184 @@ const Home = () => {
           </AccordionItem>
         </Accordion>
 
-        <div className="max-w-xl w-full bg-[#DADDE2] dark:bg-[#1f1f1f] rounded-md p-6 mt-6">
-          <h1 className="float-left">
-            {currentInputIndex + 1} of {inputs.length}
-          </h1>
-          <AnimatePresence>
-            <div
-              className="input-container"
-              style={{
-                display: 'inline-flex',
-                width: '100%',
-                overflowX: 'hidden',
-              }}
-            >
-              {inputs[currentInputIndex] && (
-                <motion.div
-                  key={currentInputIndex}
-                  initial={{ x: direction === 'right' ? '-100%' : '100%' }}
-                  animate={{ x: 0 }}
-                  exit={{ x: direction === 'right' ? '-100%' : '100%' }}
-                  transition={{ type: 'tween', duration: 0.5 }}
-                  className="w-[91%]"
+        <div className="max-w-xl w-full bg-[#DADDE2] dark:bg-[#1f1f1f] rounded-md p-6 mt-6 ">
+          {loadingState ? (
+            <div>
+              <h1 className="float-left opacity-0">
+                {currentInputIndex + 1} of {inputs.length}
+              </h1>
+              <AnimatePresence>
+                <div
+                  className="input-container opacity-0"
+                  style={{
+                    display: 'inline-flex',
+                    width: '100%',
+                    overflowX: 'hidden',
+                  }}
                 >
-                  {inputs[currentInputIndex]}
+                  {inputs[currentInputIndex] && (
+                    <motion.div
+                      key={currentInputIndex}
+                      initial={{ x: direction === 'right' ? '-100%' : '100%' }}
+                      animate={{ x: 0 }}
+                      exit={{ x: direction === 'right' ? '-100%' : '100%' }}
+                      transition={{ type: 'tween', duration: 0.5 }}
+                      className="lg:w-[91%] w-[85%]"
+                    >
+                      {inputs[currentInputIndex]}
+                    </motion.div>
+                  )}
+                </div>
+              </AnimatePresence>
+
+              <div className="flex justify-between mt-4 px-6 opacity-0">
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setCurrentInputIndex(currentInputIndex - 1);
+                    handleClick(false);
+                  }}
+                  disabled={currentInputIndex === 0}
+                >
+                  Previous
+                </Button>
+
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setCurrentInputIndex(currentInputIndex + 1);
+                    handleClick(true);
+                  }}
+                  disabled={loading || currentInputIndex === inputs.length - 1}
+                >
+                  Next
+                </Button>
+              </div>
+
+              {loading && (
+                <motion.div className="" animate={{ y: -100 }}>
+                  <Button className="w-full mt-12" disabled>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </Button>
                 </motion.div>
               )}
             </div>
-          </AnimatePresence>
+          ) : completed ? (
+            <AnimatePresence mode="wait">
+              <motion.div className="space-y-10 my-10">
+                {generatedWorkouts && (
+                  <>
+                    <div>
+                      <h2 className="sm:text-4xl text-3xl font-bold mx-auto mb-4">
+                        Your Workout Plan
+                      </h2>
+                      <div className="flex justify-between gap-2">
+                        <H1>Current: {currentWeight} lbs</H1>
+                        <H1>Desired: {desiredWeight} lbs</H1>
+                        <H1>Intensity: {intensity}</H1>
+                        <H1>Days: {daysAWeek}</H1>
+                      </div>
+                    </div>
+                    <div className="space-y-8 flex flex-col items-center justify-center max-w-xl mx-auto">
+                      {generatedWorkouts.split('2.').map((generatedWorkout) => {
+                        return (
+                          <div
+                            className="bg-white dark:bg-[#303030] text-black dark:text-white rounded-xl shadow-md p-4 hover:bg-gray-100 dark:hover:bg-[#303030]/80 transition cursor-copy border"
+                            onClick={() => {
+                              navigator.clipboard.writeText(generatedWorkout);
+                              toast.success('Bio copied to clipboard');
+                            }}
+                            key={generatedWorkout}
+                          >
+                            <p>{generatedWorkout}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div>
+              <h1 className="float-left">
+                {currentInputIndex + 1} of {inputs.length}
+              </h1>
+              <AnimatePresence>
+                <div
+                  className="input-container"
+                  style={{
+                    display: 'inline-flex',
+                    width: '100%',
+                    overflowX: 'hidden',
+                  }}
+                >
+                  {inputs[currentInputIndex] && (
+                    <motion.div
+                      key={currentInputIndex}
+                      initial={{ x: direction === 'right' ? '-100%' : '100%' }}
+                      animate={{ x: 0 }}
+                      exit={{ x: direction === 'right' ? '-100%' : '100%' }}
+                      transition={{ type: 'tween', duration: 0.5 }}
+                      className="lg:w-[91%] w-[85%]"
+                    >
+                      {inputs[currentInputIndex]}
+                    </motion.div>
+                  )}
+                </div>
+              </AnimatePresence>
 
-          <div className="flex justify-between mt-4 px-6">
-            <Button
-              variant="default"
-              onClick={() => {
-                setCurrentInputIndex(currentInputIndex - 1);
-                handleClick(false);
-              }}
-              disabled={currentInputIndex === 0}
-            >
-              Previous
-            </Button>
+              <div className="flex justify-between mt-4 px-6">
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setCurrentInputIndex(currentInputIndex - 1);
+                    handleClick(false);
+                  }}
+                  disabled={currentInputIndex === 0}
+                >
+                  Previous
+                </Button>
 
-            <Button
-              variant="default"
-              onClick={() => {
-                setCurrentInputIndex(currentInputIndex + 1);
-                handleClick(true);
-              }}
-              disabled={loading || currentInputIndex === inputs.length - 1}
-            >
-              Next
-            </Button>
-          </div>
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setCurrentInputIndex(currentInputIndex + 1);
+                    handleClick(true);
+                  }}
+                  disabled={loading || currentInputIndex === inputs.length - 1}
+                >
+                  Next
+                </Button>
+              </div>
 
-          {!loading && (
-            <Button className="w-full mt-12" onClick={(e) => generateBio(e)}>
-              <Dumbbell className="mr-2 h-4 w-4" />
-              Generate your workout&nbsp;&nbsp;
-              <Dumbbell className="mr-2 h-4 w-4" />
-            </Button>
-          )}
-          {loading && (
-            <Button className="w-full mt-12" disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
-            </Button>
+              {!loading && (
+                <Button
+                  className="w-full mt-12"
+                  onClick={(e) => generateBio(e)}
+                >
+                  <Dumbbell className="mr-2 h-4 w-4" />
+                  Generate your workout&nbsp;&nbsp;
+                  <Dumbbell className="mr-2 h-4 w-4" />
+                </Button>
+              )}
+              {loading && (
+                <Button className="w-full mt-12" disabled>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </Button>
+              )}
+            </div>
           )}
         </div>
+
         <Toaster
           position="top-center"
           reverseOrder={false}
           toastOptions={{ duration: 2000 }}
         />
         <hr className="h-px bg-gray-700 border-1 dark:bg-gray-700" />
-        <AnimatePresence mode="wait">
-          <motion.div className="space-y-10 my-10">
-            {generatedWorkouts && (
-              <>
-                <div>
-                  <h2 className="sm:text-4xl text-3xl font-bold mx-auto">
-                    Your Workout Plan
-                  </h2>
-                </div>
-                <div className="space-y-8 flex flex-col items-center justify-center max-w-xl mx-auto">
-                  {generatedWorkouts.split('2.').map((generatedWorkout) => {
-                    return (
-                      <div
-                        className="bg-white dark:bg-[#303030] text-black dark:text-white rounded-xl shadow-md p-4 hover:bg-gray-100 dark:hover:bg-[#303030]/80 transition cursor-copy border"
-                        onClick={() => {
-                          navigator.clipboard.writeText(generatedWorkout);
-                          toast('Bio copied to clipboard', {
-                            icon: '✂️',
-                          });
-                        }}
-                        key={generatedWorkout}
-                      >
-                        <p>{generatedWorkout}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </motion.div>
-        </AnimatePresence>
       </main>
     </div>
   );
